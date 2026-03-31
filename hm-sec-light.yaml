@@ -1,6 +1,6 @@
 blueprint:
-  name: Universal Binary Sensor – Aktionen + Licht mit Timer
-  description: Reagiere auf Öffnen/Schließen eines beliebigen binary_sensors, inkl. Licht-Timer.
+  name: HM-Sec-SC-2 – Licht bei Öffnen (mit Timer)
+  description: Schaltet ein Licht ein, wenn ein beliebiger binary_sensor auf "on" geht – und nach Ablauf wieder aus.
   domain: automation
 
   input:
@@ -11,31 +11,16 @@ blueprint:
         entity:
           domain: binary_sensor
 
-    action_open:
-      name: Aktion bei Öffnen
-      description: Wird ausgeführt, wenn der Sensor auf "on" wechselt.
-      default: []
-      selector:
-        action: {}
-
-    action_closed:
-      name: Aktion bei Schließen
-      description: Wird ausgeführt, wenn der Sensor auf "off" wechselt.
-      default: []
-      selector:
-        action: {}
-
     light_entity:
-      name: Licht (optional)
-      description: Wird bei Öffnen eingeschaltet und nach Ablauf wieder ausgeschaltet.
-      default: []
+      name: Licht
+      description: Das Licht, das eingeschaltet werden soll.
       selector:
         entity:
           domain: light
 
     light_duration:
       name: Lichtdauer in Sekunden
-      description: Wie lange soll das Licht nach Öffnen an bleiben?
+      description: Wie lange soll das Licht an bleiben?
       default: 60
       selector:
         number:
@@ -50,34 +35,15 @@ trigger:
   - platform: state
     entity_id: !input contact_sensor
     to: "on"
-  - platform: state
-    entity_id: !input contact_sensor
-    to: "off"
 
 action:
-  - choose:
-      - conditions:
-          - condition: state
-            entity_id: !input contact_sensor
-            state: "on"
-        sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ (input_light_entity | default('')) != '' }}"
-                sequence:
-                  - service: light.turn_on
-                    target:
-                      entity_id: !input light_entity
-                  - delay:
-                      seconds: !input light_duration
-                  - service: light.turn_off
-                    target:
-                      entity_id: !input light_entity
-          - sequence: !input action_open
+  - service: light.turn_on
+    target:
+      entity_id: !input light_entity
 
-      - conditions:
-          - condition: state
-            entity_id: !input contact_sensor
-            state: "off"
-        sequence: !input action_closed
+  - delay:
+      seconds: !input light_duration
+
+  - service: light.turn_off
+    target:
+      entity_id: !input light_entity
