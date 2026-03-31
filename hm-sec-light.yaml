@@ -1,31 +1,33 @@
 blueprint:
-  name: HM-Sec-SC-2 – Aktionen + Licht mit Timer
-  description: Reagiere auf Öffnen/Schließen eines Homematic HM-Sec-SC-2 Kontakts, inkl. Licht-Timer.
+  name: Universal Binary Sensor – Aktionen + Licht mit Timer
+  description: Reagiere auf Öffnen/Schließen eines beliebigen binary_sensors, inkl. Licht-Timer.
   domain: automation
 
   input:
     contact_sensor:
-      name: Tür-/Fensterkontakt
+      name: Sensor (binary_sensor)
+      description: Wähle den Tür-/Fensterkontakt oder beliebigen binary_sensor.
       selector:
         entity:
           domain: binary_sensor
-          device_class: door
 
     action_open:
       name: Aktion bei Öffnen
+      description: Wird ausgeführt, wenn der Sensor auf "on" wechselt.
       default: []
       selector:
         action: {}
 
     action_closed:
       name: Aktion bei Schließen
+      description: Wird ausgeführt, wenn der Sensor auf "off" wechselt.
       default: []
       selector:
         action: {}
 
     light_entity:
       name: Licht (optional)
-      description: Wird eingeschaltet, wenn geöffnet – und nach Ablauf wieder ausgeschaltet.
+      description: Wird bei Öffnen eingeschaltet und nach Ablauf wieder ausgeschaltet.
       default: []
       selector:
         entity:
@@ -62,7 +64,7 @@ action:
           - choose:
               - conditions:
                   - condition: template
-                    value_template: "{{ not (input_light_entity is string and input_light_entity == '') }}"
+                    value_template: "{{ (input_light_entity | default('')) != '' }}"
                 sequence:
                   - service: light.turn_on
                     target:
