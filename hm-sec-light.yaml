@@ -1,0 +1,80 @@
+blueprint:
+  name: HM-Sec-SC-2 – Aktionen + Licht mit Timer
+  description: Reagiere auf Öffnen/Schließen eines Homematic HM-Sec-SC-2 Kontakts, inkl. Licht-Timer.
+  domain: automation
+
+  input:
+    contact_sensor:
+      name: Tür-/Fensterkontakt
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: door
+
+    action_open:
+      name: Aktion bei Öffnen
+      default: []
+      selector:
+        action: {}
+
+    action_closed:
+      name: Aktion bei Schließen
+      default: []
+      selector:
+        action: {}
+
+    light_entity:
+      name: Licht (optional)
+      description: Wird eingeschaltet, wenn geöffnet – und nach Ablauf wieder ausgeschaltet.
+      default: []
+      selector:
+        entity:
+          domain: light
+
+    light_duration:
+      name: Lichtdauer in Sekunden
+      description: Wie lange soll das Licht nach Öffnen an bleiben?
+      default: 60
+      selector:
+        number:
+          min: 1
+          max: 3600
+          unit_of_measurement: s
+          mode: slider
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id: !input contact_sensor
+    to: "on"
+  - platform: state
+    entity_id: !input contact_sensor
+    to: "off"
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input contact_sensor
+            state: "on"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not (input_light_entity is string and input_light_entity == '') }}"
+                sequence:
+                  - service: light.turn_on
+                    target:
+                      entity_id: !input light_entity
+                  - delay: "{{ !input light_duration }}"
+                  - service: light.turn_off
+                    target:
+                      entity_id: !input light_entity
+          - sequence: !input action_open
+
+      - conditions:
+          - condition: state
+            entity_id: !input contact_sensor
+            state: "off"
+        sequence: !input action_closed
