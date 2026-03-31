@@ -1,15 +1,16 @@
 blueprint:
-  name: HM-Sec-SC-2 – Licht bei Öffnen (mit Timer)
-  description: Schaltet ein Licht ein, wenn ein beliebiger binary_sensor auf "on" geht – und nach Ablauf wieder aus.
+  name: Multi-Sensor – Licht bei Aktivierung (mit Timer)
+  description: Schaltet ein Licht ein, wenn einer von mehreren binary_sensors auf "on" geht – und nach Ablauf wieder aus.
   domain: automation
 
   input:
-    contact_sensor:
-      name: Sensor (binary_sensor)
-      description: Wähle den Tür-/Fensterkontakt oder beliebigen binary_sensor.
+    contact_sensors:
+      name: Sensoren (binary_sensor)
+      description: Wähle mehrere Tür-/Fensterkontakte oder Bewegungsmelder.
       selector:
         entity:
           domain: binary_sensor
+          multiple: true
 
     light_entity:
       name: Licht
@@ -33,7 +34,7 @@ mode: restart
 
 trigger:
   - platform: state
-    entity_id: !input contact_sensor
+    entity_id: !input contact_sensors
     to: "on"
 
 action:
